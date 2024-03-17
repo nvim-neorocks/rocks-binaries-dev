@@ -48,6 +48,11 @@ jobs:
       - uses: actions/setup-node@v4
         if: ${{ matrix.parsers.install_info.requires_generate_from_grammar }}
 
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+
       - name: Get tree-sitter ABI version
         shell: bash
         run: |
