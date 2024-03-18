@@ -71,10 +71,6 @@ jobs:
               || luarocks --local --lua-version=5.1 install "tree-sitter-$lang" \
               || echo "tree-sitter-$lang has not been packaged yet"
           done
-      - name: Install `rocks-treesitter.nvim` Package
-        run: |
-          luarocks --verbose --local --dev --lua-version=5.1 install rocks-treesitter.nvim scm
-          luarocks --verbose pack rocks-treesitter.nvim
       - name: "[HACK] work around luarocks/#1630"
         run: for f in *.macosx-x86_64.rock; do mv "$f" "$(echo "$f" | sed s/x86_64/aarch64/)"; done
       - name: Regenerate Manifests and HTML
