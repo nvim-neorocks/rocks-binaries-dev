@@ -34,10 +34,6 @@ jobs:
         uses: hishamhm/gh-actions-luarocks@master
         with:
           luarocksVersion: "3.11.0"
-      - name: Install `luarocks-build-treesitter-parser` Package
-        run: |
-          luarocks --verbose --local --lua-version=5.1 install luarocks-build-treesitter-parser
-        if: always()
 
       - name: Install tree-sitter CLI
         uses: baptiste0928/cargo-install@v3
@@ -71,6 +67,7 @@ jobs:
       - name: Install tree-sitter parsers
         shell: bash
         run: |
+          luarocks --verbose --local --lua-version=5.1 install luafilesystem luarocks-build-treesitter-parser
           langs=$(jq -r '.parsers[] | .lang' nurr/tree-sitter-parsers.json | tr -d '\r')
           for lang in $langs; do
             rm "tree-sitter-$lang-scm-1.win32-x86_64.rock" || true
