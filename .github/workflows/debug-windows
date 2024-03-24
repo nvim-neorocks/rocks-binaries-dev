@@ -1,0 +1,73 @@
+name: Debug build win32-x86_64 dependencies
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - name: Install C/C++ Compiler
+        uses: rlalik/setup-cpp-compiler@master
+        with:
+          compiler: clang-latest
+      - name: Install MSVC Compiler Toolchain
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Install Lua
+        uses: leso-kn/gh-actions-lua@master
+        with:
+          luaVersion: "5.1"
+      - name: Install Luarocks
+        uses: hishamhm/gh-actions-luarocks@master
+        with:
+          luarocksVersion: "3.11.0"
+
+      - name: Install tree-sitter CLI
+        uses: baptiste0928/cargo-install@v3
+        if: ${{ matrix.parsers.install_info.requires_generate_from_grammar }}
+        with:
+          crate: tree-sitter-cli
+
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.parsers.install_info.requires_generate_from_grammar }}
+
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+
+      - name: Get tree-sitter ABI version
+        shell: bash
+        run: |
+          # NOTE: Neovim prints output to stderr
+          ABI_VERSION="$(nvim -u NORC -c 'lua print(vim.treesitter.language_version)' --headless +q 2>&1)"
+          echo "TREE_SITTER_LANGUAGE_VERSION=$ABI_VERSION" >> $GITHUB_ENV
+
+      - name: Get tree-sitter-parsers.json
+        uses: actions/checkout@v4
+        with: 
+          repository: nvim-neorocks/nurr
+          sparse-checkout: |
+            tree-sitter-parsers.json
+          path: nurr
+        if: always()
+      - name: Install build dependencies
+        run: |
+          luarocks --local --lua-version=5.1 install luafilesystem --server='https://nvim-neorocks.github.io/rocks-binaries/'
+          luarocks --local --lua-version=5.1 install luarocks-build-treesitter-parser --server='https://nvim-neorocks.github.io/rocks-binaries/'
+      - name: Install tree-sitter parsers
+          luarocks --verbose --local install --dev "tree-sitter-haskell"
+          luarocks --verbose pack "tree-sitter-haskell"
+        if: always()
+      - name: Regenerate Manifests and HTML
+        run: luarocks-admin make-manifest --lua-version=5.1 .
+        if: always()
+      - name: commit-win32-x86_64
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update win32-x86_64 build artifacts"
+          file_pattern: "*.rock manifest* index.html"
+        if: always()
