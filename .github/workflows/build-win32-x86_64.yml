@@ -66,14 +66,13 @@ jobs:
         if: always()
       - name: Install tree-sitter parsers
         run: |
+          $ErrorActionPreference='silentlycontinue'
           luarocks --verbose --local --lua-version=5.1 install luarocks-build-treesitter-parser
           $langs = (jq -r '.parsers[] | .lang' nurr/tree-sitter-parsers.json).Replace("`r","")
           foreach ($lang in $langs) {
-            Remove-Item -Path "tree-sitter-$lang-scm-1.win32-x86_64.rock" -ErrorAction SilentlyContinue
-            luarocks --local --dev --lua-version=5.1 install "tree-sitter-$lang" scm `
-              - && luarocks pack "tree-sitter-$lang" `
-              -or luarocks --local --lua-version=5.1 install "tree-sitter-$lang" `
-              -or Write-Output "tree-sitter-$lang has not been packaged yet"
+            Remove-Item -Path "tree-sitter-$lang-scm-1.win32-x86_64.rock"
+            luarocks --local --dev --lua-version=5.1 install "tree-sitter-$lang" scm
+            luarocks pack "tree-sitter-$lang"
           }
         if: always()
       - name: Regenerate Manifests and HTML
