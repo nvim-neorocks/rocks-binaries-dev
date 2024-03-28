@@ -60,7 +60,7 @@ jobs:
           luarocks --local --lua-version=5.1 install luarocks-build-treesitter-parser --server='https://nvim-neorocks.github.io/rocks-binaries/'
       - name: Install tree-sitter parsers
         run:
-          luarocks --verbose --local --dev --lua-version=5.1 install "tree-sitter-haskell"
+          luarocks --verbose --local --dev --lua-version=5.1 install tree-sitter-haskell scm
         if: always()
       - name: Regenerate Manifests and HTML
         run: luarocks-admin make-manifest --lua-version=5.1 .
