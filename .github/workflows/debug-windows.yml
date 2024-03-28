@@ -19,28 +19,15 @@ jobs:
       - name: Install MSVC Compiler Toolchain
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install Lua 5.4
-        uses: leso-kn/gh-actions-lua@master
+      - name: Install Python
+        uses: actions/setup-python@v4
         with:
-          luaVersion: "5.4"
+          python-version: '3.10'
 
-      - name: Move Lua 5.4 installation
-        run: mv .lua .lua-5.4
-        shell: bash
-
-      - name: Install Lua 5.1
-        uses: leso-kn/gh-actions-lua@master
-        with:
-          luaVersion: "5.1"
-
-      - name: Install Luarocks
-        uses: hishamhm/gh-actions-luarocks@master
-        with:
-          luarocksVersion: "3.11.0"
-
-      - name: Configure LUA_INCDIR
-        run: luarocks config variables.LUA_INCDIR .lua-5.4/include
-        shell: bash
+      - name: Install Lua and LuaRocks
+        run: |
+          python -m pip install hererocks
+          python -m hererocks env --lua 5.1 --luarocks latest
 
       - name: Install build dependencies
         run: |
