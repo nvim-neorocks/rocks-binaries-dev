@@ -19,15 +19,20 @@ jobs:
       - name: Install MSVC Compiler Toolchain
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install Lua
+      - name: Install Lua 5.4
         uses: leso-kn/gh-actions-lua@master
         with:
-          luaVersion: "5.1"
+          luaVersion: "5.4"
 
       - name: Install Luarocks
         uses: hishamhm/gh-actions-luarocks@master
         with:
           luarocksVersion: "3.11.0"
+
+      - name: Install Lua 5.1
+        uses: leso-kn/gh-actions-lua@master
+        with:
+          luaVersion: "5.1"
 
       - name: Install build dependencies
         run: |
