@@ -81,7 +81,7 @@ jobs:
           luarocks --local --lua-version=5.1 install luarocks-build-treesitter-parser --server='https://nvim-neorocks.github.io/rocks-binaries/'
           $langs = (jq -r '.parsers[] | .lang' nurr/tree-sitter-parsers.json).Replace("`r","")
           foreach ($lang in $langs) {
-            luarocks --local --dev --lua-version=5.1 install "tree-sitter-$lang" scm
+            luarocks --verbose --local --dev --lua-version=5.1 install "tree-sitter-$lang" scm
             luarocks pack "tree-sitter-$lang"
           }
         if: always()
