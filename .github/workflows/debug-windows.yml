@@ -53,4 +53,4 @@ jobs:
 
       - name: Install tree-sitter parser
         run: |
-          luarocks --local --lua-version=5.4 install --dev tree-sitter-haskell
+          luarocks --local --lua-version=5.4 install --dev tree-sitter-toml
