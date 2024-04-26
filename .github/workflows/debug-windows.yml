@@ -27,21 +27,21 @@ jobs:
       #   with:
       #     luarocksVersion: "3.11.0"
 
-      - name: Install luarocks with scoop
-        uses: MinoruSekine/setup-scoop@v4
-        with:
-          buckets: main
-          apps: luarocks
-
-      # - name: Install Python
-      #   uses: actions/setup-python@v4
+      # - name: Install luarocks with scoop
+      #   uses: MinoruSekine/setup-scoop@v4
       #   with:
-      #     python-version: '3.10'
-      #
-      # - name: Install Lua and LuaRocks with hererocks
-      #   run: |
-      #     python -m pip install hererocks
-      #     python -m hererocks env --lua 5.1 --luarocks latest
+      #     buckets: main
+      #     apps: luarocks
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Lua and LuaRocks with hererocks
+        run: |
+          python -m pip install hererocks
+          python -m hererocks env --lua 5.1 --luarocks latest
 
       # - name: Install tree-sitter CLI
       #   uses: baptiste0928/cargo-install@v3
@@ -55,10 +55,11 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          # . env/bin/activate
+          . env/bin/activate
           luarocks --local --lua-version=5.1 install luafilesystem --server='https://nvim-neorocks.github.io/rocks-binaries/'
           luarocks --local --lua-version=5.1 install luarocks-build-treesitter-parser --server='https://nvim-neorocks.github.io/rocks-binaries/'
 
       - name: Install tree-sitter parser
         run: |
-          luarocks --local --lua-version=5.1 install --dev tree-sitter-toml
+          . env/bin/activate
+          luarocks --local --lua-version=5.1 install --dev tree-sitter-haskell
