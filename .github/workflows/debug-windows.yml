@@ -7,9 +7,6 @@ jobs:
   build:
     runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
       - name: Install C/C++ Compiler
         uses: rlalik/setup-cpp-compiler@master
         with:
@@ -22,44 +19,55 @@ jobs:
         with:
           luaVersion: "5.1"
 
+      # NOTE: Fails because it expects a lua 5.4 header
       # - name: Install Luarocks
       #   uses: hishamhm/gh-actions-luarocks@master
       #   with:
       #     luarocksVersion: "3.11.0"
 
+      # NOTE: Fails because it expects lua 5.4,
+      # which fails with a linker error
       # - name: Install luarocks with scoop
       #   uses: MinoruSekine/setup-scoop@v4
       #   with:
       #     buckets: main
       #     apps: luarocks
 
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install Lua and LuaRocks with hererocks
-        run: |
-          python -m pip install hererocks
-          python -m hererocks env --lua 5.1 --luarocks latest
-
-      # - name: Install tree-sitter CLI
-      #   uses: baptiste0928/cargo-install@v3
-      #   if: ${{ matrix.parsers.install_info.requires_generate_from_grammar }}
+      # NOTE: Fails because luafilesystem can't write queries
+      # - name: Install Python
+      #   uses: actions/setup-python@v4
       #   with:
-      #     crate: tree-sitter-cli
+      #     python-version: '3.10'
+      # - name: Install Lua and LuaRocks with hererocks
+      #   run: |
+      #     python -m pip install hererocks
+      #     python -m hererocks env --lua 5.1 --luarocks latest
+
+      - name: Install tree-sitter CLI
+        uses: baptiste0928/cargo-install@v3
+        if: ${{ matrix.parsers.install_info.requires_generate_from_grammar }}
+        with:
+          crate: tree-sitter-cli
+
+      - uses: actions/checkout@v4
+        with:
+          repository: tree-sitter/tree-sitter-haskell
+
+      - name: tree-sitter build
+        run: |
+          tree-sitter build
 
       # - uses: actions/setup-node@v4
       #   if: ${{ matrix.parsers.install_info.requires_generate_from_grammar }}
 
 
-      - name: Install build dependencies
-        run: |
-          . env/bin/activate
-          luarocks --local --lua-version=5.1 install luafilesystem --server='https://nvim-neorocks.github.io/rocks-binaries/'
-          luarocks --local --lua-version=5.1 install luarocks-build-treesitter-parser --server='https://nvim-neorocks.github.io/rocks-binaries/'
-
-      - name: Install tree-sitter parser
-        run: |
-          . env/bin/activate
-          luarocks --local --lua-version=5.1 install --dev tree-sitter-haskell
+      # - name: Install build dependencies
+      #   run: |
+      #     . env/bin/activate
+      #     luarocks --local --lua-version=5.1 install luafilesystem --server='https://nvim-neorocks.github.io/rocks-binaries/'
+      #     luarocks --local --lua-version=5.1 install luarocks-build-treesitter-parser --server='https://nvim-neorocks.github.io/rocks-binaries/'
+      #
+      # - name: Install tree-sitter parser
+      #   run: |
+      #     . env/bin/activate
+      #     luarocks --local --lua-version=5.1 install --dev tree-sitter-haskell
