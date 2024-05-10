@@ -22,29 +22,10 @@ jobs:
         with:
           luaVersion: "5.1"
 
-      # NOTE: Fails because it expects a lua 5.4 header
-      # - name: Install Luarocks
-      #   uses: hishamhm/gh-actions-luarocks@master
-      #   with:
-      #     luarocksVersion: "3.11.0"
-
-      # NOTE: Fails because it expects lua 5.4,
-      # which fails with a linker error
-      # - name: Install luarocks with scoop
-      #   uses: MinoruSekine/setup-scoop@v4
-      #   with:
-      #     buckets: main
-      #     apps: luarocks
-
-      # NOTE: Fails because luafilesystem can't write queries
-      # - name: Install Python
-      #   uses: actions/setup-python@v4
-      #   with:
-      #     python-version: '3.10'
-      # - name: Install Lua and LuaRocks with hererocks
-      #   run: |
-      #     python -m pip install hererocks
-      #     python -m hererocks env --lua 5.1 --luarocks latest
+      - name: Install Luarocks
+        uses: mrcjkb/gh-actions-luarocks@master
+        with:
+          luarocksVersion: "3.11.0"
 
       - name: Install tree-sitter CLI
         uses: baptiste0928/cargo-install@v3
