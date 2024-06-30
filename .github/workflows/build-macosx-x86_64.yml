@@ -1,3 +1,5 @@
+name: Build macosx-x86_64 dependencies
+
 on:
   workflow_dispatch:
   workflow_run:
