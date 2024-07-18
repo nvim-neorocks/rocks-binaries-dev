@@ -34,6 +34,7 @@ jobs:
           luaVersion: "5.1"
       - name: Configure architecture
         run: |
+          mkdir -p /Users/runner/.luarocks
           luarocks config arch macosx-x86_64
       - name: Install Luarocks
         uses: hishamhm/gh-actions-luarocks@master
