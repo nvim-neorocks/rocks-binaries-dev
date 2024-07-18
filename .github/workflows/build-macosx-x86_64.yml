@@ -32,6 +32,9 @@ jobs:
         uses: leso-kn/gh-actions-lua@master
         with:
           luaVersion: "5.1"
+      - name: Configure architecture
+        run: |
+          luarocks --verbose --local config arch macosx-x86_64
       - name: Install Luarocks
         uses: hishamhm/gh-actions-luarocks@master
         with:
@@ -54,7 +57,6 @@ jobs:
             rm "tree-sitter-$lang-scm-1.macosx-x86_64.rock" || true
             luarocks --local --dev --lua-version=5.1 install "tree-sitter-$lang" scm \
               && luarocks pack "tree-sitter-$lang" \
-              || luarocks --local --lua-version=5.1 install "tree-sitter-$lang" \
               || echo "tree-sitter-$lang has not been packaged yet"
           done
       - name: Regenerate Manifests and HTML
