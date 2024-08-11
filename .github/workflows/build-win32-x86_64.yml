@@ -38,10 +38,9 @@ jobs:
         run: |
           scoop install neorocks-scoop/luarocks
 
-      - name: Install tree-sitter CLI
-        uses: baptiste0928/cargo-install@v3
+      - uses: tree-sitter/setup-action@v1
         with:
-          crate: tree-sitter-cli
+          tree-sitter-ref: v0.22.5
 
       - uses: actions/setup-node@v4
         if: ${{ matrix.parsers.install_info.generate }}
