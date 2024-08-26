@@ -27,8 +27,6 @@ jobs:
           nix profile install nixpkgs#gcc
 
       - uses: tree-sitter/setup-action@v1
-        with:
-          tree-sitter-ref: v0.22.5
 
       - name: Install Lua
         uses: leso-kn/gh-actions-lua@master

@@ -38,9 +38,11 @@ jobs:
         run: |
           scoop install neorocks-scoop/luarocks
 
-      - uses: tree-sitter/setup-action@v1
+        # NOTE: The tree-sitter/setup-action does not support Windows
+      - name: Install tree-sitter-cli
+        uses: actions-rs/install@v0.1
         with:
-          tree-sitter-ref: v0.22.5
+          crate: tree-sitter-cli
 
       - uses: actions/setup-node@v4
         if: ${{ matrix.parsers.install_info.generate }}
