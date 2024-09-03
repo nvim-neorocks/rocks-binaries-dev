@@ -75,6 +75,12 @@ jobs:
             luarocks pack "tree-sitter-$lang"
           }
         if: always()
+
+      - name: Install tree-sitter-nu
+        run: |
+          luarocks --local --dev --lua-version=5.1 install tree-sitter-nu scm
+          luarocks pack tree-sitter-nu
+
       - name: Regenerate Manifests and HTML
         run: |
           luarocks-admin make-manifest --lua-version=5.1 .
