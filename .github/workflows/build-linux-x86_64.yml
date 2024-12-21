@@ -1,0 +1,85 @@
+name: Build linux-x86_64 dependencies
+
+on:
+  push:
+    paths:
+      - .github/workflows/build-linux-x86_64.yml
+      - .github/workflows/build-macosx-aarch64.yml
+      - .github/workflows/build-macosx-x86_64.yml
+      - .github/workflows/build-win32-x86_64.yml
+  schedule:
+    # Runs every 24 hours
+    - cron: "0 */24 * * *"
+  workflow_dispatch:
+ 
+# Prevent concurrent auto-commits
+concurrency:
+  group: auto-commit-linux-x86_64
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - name: Install C/C++ Compiler
+        uses: rlalik/setup-cpp-compiler@master
+        with:
+          compiler: clang-latest
+      - name: Install Lua
+        uses: leso-kn/gh-actions-lua@master
+        with:
+          luaVersion: "5.1"
+      - name: Install Luarocks
+        uses: hishamhm/gh-actions-luarocks@master
+      - name: Install `luarocks-build-treesitter-parser` Package
+        run: |
+          luarocks --verbose --local --lua-version=5.1 install luarocks-build-treesitter-parser
+
+      - uses: tree-sitter/setup-action@v1
+
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.parsers.install_info.generate }}
+
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+
+      - name: Get tree-sitter ABI version
+        run: |
+          # NOTE: Neovim prints output to stderr
+          ABI_VERSION="$(nvim -u NORC -c 'lua print(vim.treesitter.language_version)' --headless +q 2>&1)"
+          echo "TREE_SITTER_LANGUAGE_VERSION=$ABI_VERSION" >> $GITHUB_ENV
+
+      - name: Get tree-sitter-parsers.json
+        uses: actions/checkout@v4
+        with: 
+          repository: nvim-neorocks/nurr
+          sparse-checkout: |
+            tree-sitter-parsers.json
+          path: nurr
+      - name: Install tree-sitter parsers
+        run: |
+          langs=$(jq -r '.parsers[] | .lang' nurr/tree-sitter-parsers.json)
+          for lang in $langs; do
+            rm "tree-sitter-$lang-scm-1.linux-x86_64.rock" || true
+          luarocks --local --dev --lua-version=5.1 install "tree-sitter-$lang" scm \
+              && luarocks pack "tree-sitter-$lang" \
+              || echo "tree-sitter-$lang has not been packaged yet"
+          done
+
+      - name: Install tree-sitter-nu
+        run: |
+          luarocks --local --dev --lua-version=5.1 install tree-sitter-nu scm
+          luarocks pack tree-sitter-nu
+
+      - name: Regenerate Manifests and HTML
+        run: luarocks-admin make-manifest --lua-version=5.1 .
+      - name: commit-linux-x86_64
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update linux-x86_64 build artifacts"
+          file_pattern: "*.linux-x86_64.rock *.all.rock manifest* index.html"

@@ -1,0 +1,93 @@
+name: Build win32-x86_64 dependencies
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build macosx-x86_64 dependencies"]
+    branches: [main]
+    types: 
+      - completed
+
+# Prevent concurrent auto-commits
+concurrency:
+  group: auto-commit-win32-x86_64
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - name: Install C/C++ Compiler
+        uses: rlalik/setup-cpp-compiler@master
+        with:
+          compiler: clang-latest
+      - name: Install MSVC Compiler Toolchain
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Scoop
+        uses: MinoruSekine/setup-scoop@v4
+
+      - name: Add rocks-scoop bucket
+        run: |
+          scoop bucket add neorocks-scoop https://github.com/nvim-neorocks/rocks-scoop.git
+
+      - name: Install luarocks
+        run: |
+          scoop install neorocks-scoop/luarocks
+
+        # NOTE: The tree-sitter/setup-action does not support Windows
+      - name: Install tree-sitter-cli
+        uses: actions-rs/install@v0.1
+        with:
+          crate: tree-sitter-cli
+
+      - uses: actions/setup-node@v4
+        if: ${{ matrix.parsers.install_info.generate }}
+
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+
+      - name: Get tree-sitter ABI version
+        shell: bash
+        run: |
+          # NOTE: Neovim prints output to stderr
+          ABI_VERSION="$(nvim -u NORC -c 'lua print(vim.treesitter.language_version)' --headless +q 2>&1)"
+          echo "TREE_SITTER_LANGUAGE_VERSION=$ABI_VERSION" >> $GITHUB_ENV
+
+      - name: Get tree-sitter-parsers.json
+        uses: actions/checkout@v4
+        with: 
+          repository: nvim-neorocks/nurr
+          sparse-checkout: |
+            tree-sitter-parsers.json
+          path: nurr
+        if: always()
+      - name: Install tree-sitter parsers
+        run: |
+          $langs = (jq -r '.parsers[] | .lang' nurr/tree-sitter-parsers.json).Replace("`r","")
+          foreach ($lang in $langs) {
+            luarocks --local --dev --lua-version=5.1 install "tree-sitter-$lang" scm
+            luarocks pack "tree-sitter-$lang"
+          }
+        if: always()
+
+      - name: Install tree-sitter-nu
+        run: |
+          luarocks --local --dev --lua-version=5.1 install tree-sitter-nu scm
+          luarocks pack tree-sitter-nu
+
+      - name: Regenerate Manifests and HTML
+        run: |
+          luarocks-admin make-manifest --lua-version=5.1 .
+        if: always()
+      - name: commit-win32-x86_64
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update win32-x86_64 build artifacts"
+          file_pattern: "*.win32-x86_64.rock *.all.rock manifest* index.html"
+        if: always()
